@@ -1,7 +1,7 @@
 MMVC_Client
 ====
 
-AIを使ったリアルタイムボイスチェンジャー
+AIを使ったリアルタイムボイスチェンジャー ( https://github.com/isletennos/MMVC_Client )  
 をフォークしてコントローラー操作で音声変更できるようにしたリポジトリ
 
 ## Description
