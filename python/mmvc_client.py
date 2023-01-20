@@ -17,6 +17,7 @@ import noisereduce as nr
 #ファイルダイアログ関連
 import tkinter as tk #add
 from tkinter import filedialog #add
+import tkinter.ttk as ttk
 
 #user lib
 from models import SynthesizerTrn
@@ -660,27 +661,66 @@ class MockStream:
             self.fw = None
 
 class VoiceSelectorJoyStick():
-    def open_window(self):
-        self.voice_ids = Hyperparameters.VOICE_LIST
-        self.voice_labels = Hyperparameters.VOICE_LABEL
-        self.joystick_button_list = Hyperparameters.Joystick_Button_List # コントローラーとキャラの対応
-        self.voice_select_id = self.voice_ids[0]
+    def get_closure_combobox_on_selected(self):
 
-        # ジョイスティックの初期化
-        pygame.joystick.init()
-        try:
+        def on_selected(event):
+            value = event.widget.get()
+            id = self.joystick_names.index(value)
             # ジョイスティックインスタンスの生成
-            self.joystick = pygame.joystick.Joystick(0)
+            self.joystick = pygame.joystick.Joystick(id)
             self.joystick.init()
             print('ジョイスティックの名前:', self.joystick.get_name())
             print('ボタン数 :', self.joystick.get_numbuttons())
-        except pygame.error:
-            print('ジョイスティックが接続されていません')
-            return
-        # pygameの初期化
+
+        return on_selected
+
+    def get_closure_button_on_click(self, button, id):
+
+        def on_click(event):
+            self.selected_button.config(fg="black")
+            button.config(fg="red")
+            self.selected_button = button
+            self.voice_select_id = id
+            #print(f"voice select id: {id}")
+
+        return on_click
+
+    def open_window(self):
+        self.voice_ids = Hyperparameters.VOICE_LIST
+        self.voice_labels = Hyperparameters.VOICE_LABEL
+        self.voice_select_id = self.voice_ids[0]
+
+        self.joystick_button_list = Hyperparameters.Joystick_Button_List # コントローラーとキャラの対応
+
+        self.root_win = tk.Tk()
+        height = int(len(self.voice_ids) * 30)
+        self.root_win.geometry(f"200x{height}")
+        self.root_win.title("MMVC Client")
+        self.root_win.protocol("WM_DELETE_WINDOW", self.close_window)
+
+        # ジョイスティックの初期化
+        pygame.joystick.init()
+        self.joystick_names = list(map(lambda i: str(i) + ": " + pygame.joystick.Joystick(i).get_name(), range(pygame.joystick.get_count())))
+        self.combobox = ttk.Combobox ( self.root_win , values = self.joystick_names)
+        self.combobox.pack()
+        combobox_on_selected = self.get_closure_combobox_on_selected()
+        self.combobox.bind("<<ComboboxSelected>>", combobox_on_selected)
+
+        self.button_list = []
+        self.selected_button = None
+        self.voice_select_id = self.voice_ids[0]
+
+        for voice_id, voice_label in zip(self.voice_ids, self.voice_labels):
+            button = tk.Button(self.root_win, text=f"{voice_label}")
+            if voice_id == self.voice_select_id:
+                button.config(fg="red")
+                self.selected_button = button
+            button_on_click = self.get_closure_button_on_click(button, voice_id)
+            button.bind("<Button-1>", button_on_click)
+            button.pack()
+            self.button_list.append(button)
+
         pygame.init()
-        # # 画面の生成
-        # screen = pygame.display.set_mode((320, 320))
     
     def update_window(self):
         for e in pygame.event.get():
@@ -693,8 +733,16 @@ class VoiceSelectorJoyStick():
                 if e.button in self.joystick_button_list:
                     self.voice_select_id = self.voice_ids[self.joystick_button_list.index(e.button)]
                     print(self.voice_labels[self.joystick_button_list.index(e.button)])        
+                    for i, button in enumerate(self.button_list):
+                        if i == self.joystick_button_list.index(e.button):
+                            button.config(fg="red")
+                        else:
+                            button.config(fg="black")
+
+
             # elif e.type == pygame.locals.JOYBUTTONUP:
             #     print('ボタン'+str(e.button)+'を離した')
+        self.root_win.update()
 
     def close_window(self):
         Hyperparameters.VC_END_FLAG = True
