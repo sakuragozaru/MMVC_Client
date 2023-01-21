@@ -728,6 +728,8 @@ class VoiceSelectorJoyStick():
                     self.joystick_button_list = list(map(lambda button_id: (None if button_id == e.button else button_id), self.joystick_button_list ))
                     i = self.button_list.index(self.selected_button)
                     self.joystick_button_list[i] = e.button
+                    for i, button in enumerate(self.button_list):
+                        button["text"] = ("" if self.joystick_button_list[i] is None else "[" + str(self.joystick_button_list[i]) + "] ") + self.voice_labels[i]
                     self.selected_button = None
                 # 通常のボタンでの話者切り替えモード
                 if e.button in self.joystick_button_list:
