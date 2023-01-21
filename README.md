@@ -1,4 +1,4 @@
-MMVC_Client
+MMVC_ClientのJoystickで話者切り替え改造版
 ====
 
 AIを使ったリアルタイムボイスチェンジャー ( https://github.com/isletennos/MMVC_Client )  
