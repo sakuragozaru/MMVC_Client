@@ -677,11 +677,12 @@ class VoiceSelectorJoyStick():
     def get_closure_button_on_click(self, button, id):
 
         def on_click(event):
-            self.selected_button.config(fg="black")
-            button.config(fg="red")
-            self.selected_button = button
-            self.voice_select_id = id
-            #print(f"voice select id: {id}")
+            if self.selected_button != button:
+                self.selected_button = button
+            else: 
+                i = self.button_list.index(self.selected_button)
+                self.joystick_button_list[i] = None
+                self.selected_button = None
 
         return on_click
 
@@ -712,9 +713,6 @@ class VoiceSelectorJoyStick():
 
         for voice_id, voice_label in zip(self.voice_ids, self.voice_labels):
             button = tk.Button(self.root_win, text=f"{voice_label}")
-            if voice_id == self.voice_select_id:
-                button.config(fg="red")
-                self.selected_button = button
             button_on_click = self.get_closure_button_on_click(button, voice_id)
             button.bind("<Button-1>", button_on_click)
             button.pack()
@@ -730,18 +728,25 @@ class VoiceSelectorJoyStick():
                 return
             # ジョイスティックのボタンの入力
             elif e.type == pygame.locals.JOYBUTTONDOWN:
+                # ボタン割り当てモード
+                if self.selected_button is not None:
+                    self.joystick_button_list = list(map(lambda button_id: (None if button_id == e.button else button_id), self.joystick_button_list ))
+                    i = self.button_list.index(self.selected_button)
+                    self.joystick_button_list[i] = e.button
+                    self.selected_button = None
+                # 通常のボタンでの話者切り替えモード
                 if e.button in self.joystick_button_list:
                     self.voice_select_id = self.voice_ids[self.joystick_button_list.index(e.button)]
-                    print(self.voice_labels[self.joystick_button_list.index(e.button)])        
-                    for i, button in enumerate(self.button_list):
-                        if i == self.joystick_button_list.index(e.button):
-                            button.config(fg="red")
-                        else:
-                            button.config(fg="black")
+                    print(self.voice_labels[self.joystick_button_list.index(e.button)])
 
-
-            # elif e.type == pygame.locals.JOYBUTTONUP:
-            #     print('ボタン'+str(e.button)+'を離した')
+        for i, button in enumerate(self.button_list):
+            if button == self.selected_button:
+                button.config(fg="blue")
+            elif i == self.voice_ids.index(self.voice_select_id):
+                button.config(fg="red")
+            else:
+                button.config(fg="black")
+        
         self.root_win.update()
 
     def close_window(self):
