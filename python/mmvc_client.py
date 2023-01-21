@@ -127,7 +127,6 @@ class Hyperparameters():
     GPU_ID = 0
     Voice_Selector_Flag = None
     Joystick_Selector_Flag = None
-    Joystick_Button_List = None
     USE_ONNX = None
     ONNX_PROVIDERS = None
     hps = None
@@ -205,9 +204,6 @@ class Hyperparameters():
     def set_Joystick_Selector(self, value):
         Hyperparameters.Joystick_Selector_Flag = value
 
-    def set_Joystick_Button_List(self, value):
-        Hyperparameters.Joystick_Button_List = value
-
     def set_USE_ONNX(self, value):
         Hyperparameters.USE_ONNX = value
 
@@ -252,7 +248,6 @@ class Hyperparameters():
         self.set_GPU_ID(profile.device.gpu_id)
         self.set_Voice_Selector(profile.others.voice_selector)
         self.set_Joystick_Selector(profile.others.joystick_selector)
-        self.set_Joystick_Button_List(profile.others.joystick_button_list)
         if hasattr(profile.vc_conf, "onnx"):
             self.set_USE_ONNX(profile.vc_conf.onnx.use_onnx)
             self.set_ONNX_PROVIDERS(profile.vc_conf.onnx.onnx_providers)
@@ -691,7 +686,7 @@ class VoiceSelectorJoyStick():
         self.voice_labels = Hyperparameters.VOICE_LABEL
         self.voice_select_id = self.voice_ids[0]
 
-        self.joystick_button_list = Hyperparameters.Joystick_Button_List # コントローラーとキャラの対応
+        self.joystick_button_list = [None] * len(self.voice_ids)
 
         self.root_win = tk.Tk()
         height = int(len(self.voice_ids) * 30)
